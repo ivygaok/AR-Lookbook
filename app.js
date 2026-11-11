@@ -115,7 +115,7 @@ start.addEventListener('click', async () => {
     await unlockAudio();
     if (thisSession !== session) return;
     message.textContent = 'Checking target data…';
-    const response = await fetch('assets/targets.mind');
+    const response = await fetch('assets/targets-flat.mind');
     if (thisSession !== session) return;
     if (!response.ok) throw new Error('missing-target');
     // A web host may return an HTML error page with status 200.
@@ -130,7 +130,7 @@ start.addEventListener('click', async () => {
     if (thisSession !== session) return;
     const missing = error.message === 'missing-target';
     finish(missing
-      ? 'One setup step remains: compile assets/target.png and save the result as assets/targets.mind. See START-HERE.txt.'
+      ? 'One setup step remains: compile assets/flat-section.png and save the result as assets/targets-flat.mind.'
       : 'Could not start AR. Check camera permission and your internet connection, then try again.');
     console.error(error);
   }

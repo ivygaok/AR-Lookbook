@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=flat-section-1" defer></script>
 </head>
 <body>
   <main id="welcome" class="card">
@@ -29,19 +29,14 @@
   </div>
   <video id="art-video" src="assets/video-v2.mp4" muted playsinline loop preload="metadata" crossorigin="anonymous" hidden></video>
   <a-scene
-    mindar-image="imageTargetSrc: assets/targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 5; missTolerance: 10;"
+    mindar-image="imageTargetSrc: assets/targets-flat.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 5; missTolerance: 10;"
     color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true;"
     vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
     <a-entity id="portrait" mindar-image-target="targetIndex: 0">
-      <!-- Width 1 = the flower's bounding width. 0.5625 preserves the video's 16:9 shape. -->
-      <a-video
-  src="#art-video"
-  width="0.75"
-  height="0.421875"
-  position="0 0 0.01"
-  material="shader: flat; side: double;">
-</a-video>
+      <!-- Tracking crop: original pixels (1070,800)-(1270,1020). Video stays centered on full flower at 75% flower width. -->
+      <a-video src="#art-video" width="3.36" height="1.89" position="-0.73 1.2125 0.01"
+        material="shader: flat; side: double;"></a-video>
     </a-entity>
   </a-scene>
 </body>
