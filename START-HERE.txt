@@ -1,0 +1,73 @@
+AR LOOKBOOK — FIRST TEST
+
+Included files
+index.html       Website structure and video placement
+style.css        Colors, type, and buttons
+app.js           Camera, recognition, playback, and sound controls
+assets/target.png  Flower portrait, cropped to remove empty outer margins
+assets/video.mp4   Optimized copy of your video, with audio
+
+Your original uploads are unchanged. The portrait remains transparent outside
+its flower shape. Nothing here requires a white printed page. The video is a
+normal 16:9 rectangle centered over the flower, not masked into a flower.
+
+1. OPEN IN VS CODE
+Unzip AR-Lookbook-Starter.zip. Move the AR-Lookbook folder to Documents.
+In VS Code choose File > Open Folder and select this folder.
+If you already made an empty AR-Lookbook folder, replace it with this one.
+
+2. MAKE THE RECOGNITION FILE (required once)
+On your Mac, visit:
+https://hiukim.github.io/mind-ar-js-doc/tools/compile/
+Add ONLY assets/target.png from this folder. Click Start.
+When finished, download the resulting targets.mind file.
+Move it into the assets folder next to target.png and video.mp4.
+Make sure its name is exactly targets.mind (no extra number or .txt).
+
+This is the portrait's tracking data. You do not need to repeat this when
+changing only the video. If you change the target, compile it again.
+The portrait's internal details matter most. A fold, glare, or a very small
+print may make recognition harder. Test it in its actual printed shape.
+
+3. PUT THE FILES ON GITHUB
+Sign in at https://github.com and create a new repository named ar-lookbook.
+Choose Public and add a README so the repository is initialized.
+Open the repository, choose Add file > Upload files.
+In Finder, open AR-Lookbook. Select its CONTENTS (index.html, app.js,
+style.css, START-HERE.txt, assets, and any other visible files) and drag them
+into GitHub's upload area. Include the assets FOLDER to preserve its path.
+Click Commit changes.
+IMPORTANT: index.html must be at the top level of the repository, not inside
+another AR-Lookbook folder. assets must contain targets.mind before testing.
+Your source files and uploaded media will be publicly accessible in this repo.
+
+4. ENABLE THE WEBSITE
+In the repository, open Settings > Pages.
+Under Build and deployment, select Deploy from a branch.
+Select main and / (root), then Save.
+Wait for GitHub's deployment to finish. The Pages screen will show your URL,
+normally https://YOUR-USERNAME.github.io/ar-lookbook/
+
+5. TEST ON ANDROID
+Open that HTTPS URL in Chrome on your Android phone.
+Keep an image of the flower portrait visible on your Mac, or use the print.
+Tap Start AR, allow camera access, and aim at the portrait.
+The rectangular video should follow the flower. Tap Sound to hear audio.
+Moving away pauses it; finding the portrait again resumes it.
+Stop camera ends the session. Switching tabs also stops it.
+Do not double-click index.html to test; use the published website.
+
+6. NEXT
+After the printed target works, make a QR code for the Pages URL.
+Do this before printing the final book. Keep the repo name and URL stable.
+We can add other targets, adjust video size, or mask it into a flower later.
+
+TESTING LIMIT
+The code and file structure were checked in the development environment.
+Camera tracking on your Android and recognition of the physical foldout
+must still be tested. The targets.mind file is not included: step 2 creates it.
+
+Official references:
+https://hiukim.github.io/mind-ar-js-doc/quick-start/compile/
+https://hiukim.github.io/mind-ar-js-doc/examples/events-handling/
+https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
