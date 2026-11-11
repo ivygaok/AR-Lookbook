@@ -8,9 +8,16 @@ const message = $('#message');
 const status = $('#status');
 const sound = $('#sound');
 const play = $('#play');
+const scanAnother = $('#scan-another');
+const help = $('#targets-help');
+const guide = $('#target-guide');
+const TARGET_FILE = 'assets/targets-flower.mind';
+let startupTimer;
+let dismissPopup = false;
+let popupVisible = false;
 const experiences = [
   { target: $('#portrait'), media: $('#art-video'), label: 'Artist portrait' },
-  { target: $('#popup-page'), media: $('#page-audio'), label: 'Popup soundscape' }
+  { target: $('#popup-page'), media: $('#page-audio'), label: 'Popup soundscape', keepPlaying: true }
 ];
 let ar;
 let active = false;
@@ -75,6 +82,12 @@ if (scene.hasLoaded) ready();
 else scene.addEventListener('loaded', ready, { once: true });
 
 function finish(text) {
+  clearTimeout(startupTimer);
+  dismissPopup = false;
+  popupVisible = false;
+  scanAnother.hidden = true;
+  if (guide.open) guide.close();
+  help.setAttribute('aria-expanded', 'false');
   session += 1;
   playback += 1;
   active = false;
@@ -107,7 +120,7 @@ async function playCurrent() {
     }
     if (request !== playback) return;
     play.hidden = true;
-    status.textContent = item.label + ' — keep the target in view';
+    status.textContent = item.keepPlaying ? 'Enjoy the soundscape.' : 'Portrait found — keep it in view';
   } catch (error) {
     if (request !== playback || current !== item || !active) return;
     silence(item);
@@ -125,6 +138,9 @@ start.addEventListener('click', async () => {
   start.disabled = true;
   const request = ++session;
   current = null;
+  dismissPopup = false;
+  popupVisible = false;
+  scanAnother.hidden = true;
   silenceAll();
   for (const item of experiences) item.media.currentTime = 0;
   message.textContent = 'Enabling sound…';
@@ -132,28 +148,41 @@ start.addEventListener('click', async () => {
     await unlockAudio();
     if (request !== session) return;
     message.textContent = 'Checking target data…';
-    const response = await fetch('assets/targets-book.mind');
+    const controller = new AbortController();
+    const fetchTimer = setTimeout(() => controller.abort(), 15000);
+    let response;
+    try {
+      response = await fetch(TARGET_FILE, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
+    } finally {
+      clearTimeout(fetchTimer);
+    }
     if (request !== session) return;
     if (!response.ok || (response.headers.get('content-type') || '').includes('text/html')) {
       throw new Error('missing-target');
     }
     active = true;
-    message.textContent = 'Allow camera access when asked…';
+    message.textContent = 'Starting camera… Allow camera access when asked.';
+    startupTimer = setTimeout(() => {
+      if (request === session) finish('AR is taking too long to load. Check your connection, then try again.');
+    }, 45000);
     await ar.start();
     if (request === session) starting = false;
   } catch (error) {
     if (request !== session) return;
     finish(error.message === 'missing-target'
-      ? 'Compile target-01.png and target-02.png together in that order, then save the result as assets/targets-book.mind. See START-HERE.txt.'
-      : 'Could not start AR. Check camera permission and your connection, then try again.');
+      ? 'Target file missing. Upload targets-flower.mind inside assets, then wait for GitHub to publish. See START-HERE.txt.'
+      : error.name === 'AbortError'
+        ? 'Target check timed out. Check your connection and try Start AR again.'
+        : 'Could not start AR. Check camera permission and your connection, then try again.');
     console.error(error);
   }
 });
 scene.addEventListener('arReady', () => {
+  clearTimeout(startupTimer);
   if (!active) { ar?.stop(); return; }
   welcome.hidden = true;
   toolbar.hidden = false;
-  status.textContent = 'Scan the portrait or the background to the right of the popup';
+  status.textContent = 'Point at a flower.';
 });
 scene.addEventListener('arError', () => {
   finish('Could not start the camera. Allow camera access in Chrome, then try again.');
@@ -161,15 +190,27 @@ scene.addEventListener('arError', () => {
 for (const item of experiences) {
   item.target.addEventListener('targetFound', () => {
     if (!active) return;
+    if (item.keepPlaying) {
+      popupVisible = true;
+      if (dismissPopup) return;
+    }
+    if (current === item) return;
     playback += 1;
     silenceAll();
     current = item;
+    scanAnother.hidden = !item.keepPlaying;
     play.hidden = true;
     status.textContent = item.label + ' found';
     playCurrent();
   });
   item.target.addEventListener('targetLost', () => {
+    if (item.keepPlaying) {
+      popupVisible = false;
+      dismissPopup = false;
+    }
     if (current !== item) return;
+    // The popup triggers an audio experience that can continue off camera.
+    if (item.keepPlaying) return;
     playback += 1;
     current = null;
     silence(item);
@@ -186,6 +227,21 @@ sound.addEventListener('click', () => {
   playCurrent();
 });
 play.addEventListener('click', playCurrent);
+scanAnother.addEventListener('click', () => {
+  playback += 1;
+  silenceAll();
+  current = null;
+  dismissPopup = popupVisible;
+  scanAnother.hidden = true;
+  play.hidden = true;
+  status.textContent = 'Point at another flower.';
+});
+help.addEventListener('click', () => {
+  if (!guide.open) guide.showModal();
+  help.setAttribute('aria-expanded', 'true');
+});
+$('#close-guide').addEventListener('click', () => guide.close());
+guide.addEventListener('close', () => help.setAttribute('aria-expanded', 'false'));
 $('#stop').addEventListener('click', () => finish('Camera stopped.'));
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && (active || starting)) finish('Camera paused. Tap Start AR to continue.');

@@ -4,17 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>AR Lookbook</title>
-  <link rel="stylesheet" href="style.css?v=two-experiences-1">
+  <link rel="stylesheet" href="style.css?v=flower-scan-1">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script src="app.js?v=two-experiences-1" defer></script>
+  <script src="app.js?v=flower-scan-1" defer></script>
 </head>
 <body>
   <main id="welcome" class="card">
     <p class="eyebrow">AN INTERACTIVE LOOKBOOK</p>
     <h1>Explore the book.</h1>
-    <p>Start the camera, then scan the portrait or the background beside the popup flower.</p>
-    <img class="preview" src="assets/target.png" alt="Flower-shaped portrait to scan">
+    <p>Two flowers. Two experiences.</p>
+    <div class="target-grid">
+      <figure><img src="assets/target.png" alt="Unfolded portrait flower"><figcaption><strong>Artist portrait</strong><span>Unfold and scan.</span></figcaption></figure>
+      <figure><img src="assets/popup-preview.jpg" alt="Pink paper popup flower"><figcaption><strong>Popup flower</strong><span>Point at the flower.</span></figcaption></figure>
+    </div>
     <button id="start" disabled>Loading AR…</button>
     <p id="message" role="status" aria-live="polite">Preparing the experience…</p>
     <p class="small">Allow camera access when asked. Start AR enables sound. You can mute it at any time. Camera images are processed on your device.</p>
@@ -24,13 +27,22 @@
     <div class="buttons">
       <button id="sound" aria-pressed="false">Sound: off</button>
       <button id="play" hidden>Play media</button>
+      <button id="targets-help" aria-expanded="false" aria-controls="target-guide">What to scan</button>
+      <button id="scan-another" hidden>Scan another page</button>
       <button id="stop">Stop camera</button>
     </div>
   </div>
+  <dialog id="target-guide" aria-labelledby="guide-title">
+    <div class="guide-top"><h2 id="guide-title">What to scan</h2><button id="close-guide" autofocus>Close</button></div>
+    <div class="target-grid">
+      <figure><img src="assets/target.png" alt="Unfolded portrait flower"><figcaption><strong>Artist portrait</strong><span>Unfold and scan.</span></figcaption></figure>
+      <figure><img src="assets/popup-preview.jpg" alt="Pink paper popup flower"><figcaption><strong>Popup flower</strong><span>Point at the flower.</span></figcaption></figure>
+    </div>
+  </dialog>
   <video id="art-video" src="assets/video-v2.mp4" muted playsinline loop preload="metadata" crossorigin="anonymous" hidden></video>
   <audio id="page-audio" src="assets/audio-02.mp3" muted loop preload="metadata" crossorigin="anonymous" hidden></audio>
   <a-scene
-    mindar-image="imageTargetSrc: assets/targets-book.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 5; missTolerance: 10;"
+    mindar-image="imageTargetSrc: assets/targets-flower.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 5; missTolerance: 10;"
     color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true;"
     vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>

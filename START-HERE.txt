@@ -1,56 +1,71 @@
-TWO AR EXPERIENCES — COMPLETE PROJECT
+FLOWER SCAN UPDATE — COMPLETE PROJECT
 
-This folder contains both experiences, including all existing media and styles.
-1. Portrait: video with sound, using the accepted flat-section target and
-   existing video size and placement.
-2. Popup page: audio only, using the flat background on the RIGHT side.
-   No digital image or video covers the physical popup.
+WHAT CHANGED
+- The welcome screen shows both physical targets with pictures.
+- Popup instruction: Point at the flower.
+- What to scan opens the same reference pictures while scanning.
+- The second recognition target is the WHOLE original background page.
+- The popup soundscape continues after recognition, even when the target is
+  no longer in view. Scan another page or Stop camera stops it.
+- The portrait video retains its accepted flat-section tracking, size,
+  placement, and audio behavior. It pauses when tracking is lost.
+- Both clips loop. Recognizing the other target switches experiences.
+- Missing recognition files and stalled target checks now show an error.
 
-Start AR enables sound for both. Each clip loops while its target is tracked.
-Scanning away pauses playback; returning resumes it. Switching between targets
-pauses the other clip. Sound mutes both. Stop camera stops both.
-
-SETUP
-1. Unzip AR-Lookbook-Two-Experiences.zip. Keep your old project as a backup.
-2. Open the new AR-Lookbook-Two-Experiences folder in VS Code.
+INSTALL
+1. Unzip AR-Lookbook-Flower-Scan.zip. Keep your previous project as a backup.
+2. Open this new folder in VS Code. It is a complete project, not a patch.
 3. On your Mac open https://hiukim.github.io/mind-ar-js-doc/tools/compile/
-4. Add these two images from the new assets folder IN THIS EXACT ORDER:
-   FIRST target-01.png (portrait apron/brooch patch)
-   SECOND target-02.png (right-side brick wall/graffiti background)
-   Confirm the compiler lists the portrait patch first. Compile BOTH together
-   in a single operation, not separately. This sets targetIndex 0 and 1.
-5. Download the result. Rename it targets-book.mind and put it inside the
-   new project's assets folder, next to target-01.png and target-02.png.
-6. Open your existing AR-Lookbook repository on GitHub.
-   Choose Add file > Upload files. From the NEW project folder, drag in its
-   CONTENTS: index.html, app.js, style.css, START-HERE.txt, and assets folder.
-   Do not drag the outer project folder. Commit changes.
-7. After deployment, open https://ivygaok.github.io/AR-Lookbook/ on Android.
-   Use a new Incognito tab if the previous version is cached.
-8. Start AR and test each physical page. For the popup page, aim so the
-   background to the RIGHT of the flower is clearly visible. A closer view of
-   that area can help initial recognition. No reprinting is needed.
+4. Add the new assets folder's target images in this EXACT order:
+   FIRST target-01.png — the small portrait/apron crop (unchanged).
+   SECOND target-02.png — the WHOLE popup background (new version).
+   Compile both together in one operation. Do not use the older cropped
+   target-02.png from a previous project folder.
+5. Download the compiled result. Rename it EXACTLY targets-flower.mind.
+   Put it inside THIS project's assets folder before uploading.
+6. In your EXISTING GitHub AR-Lookbook repository select Add file > Upload files.
+   From the NEW project folder, drag its CONTENTS into GitHub:
+   index.html, app.js, style.css, START-HERE.txt, and the entire assets folder.
+   Do not drag the outer AR-Lookbook-Flower-Scan folder.
+   Commit changes and wait for the Pages deployment to complete.
+7. Verify this link downloads a file instead of showing 404:
+   https://ivygaok.github.io/AR-Lookbook/assets/targets-flower.mind
+8. Open https://ivygaok.github.io/AR-Lookbook/ in a new Android Chrome Incognito
+   tab. Confirm you see TWO pictures and 'Point at the flower.'
+   Tap Start AR, allow the camera, and test both printed pages.
 
-OLD FILES
-Your old targets.mind, targets-flat.mind, flat-section.png, and video.mp4 can
-remain in GitHub; this version does not reference them. Keep video-v2.mp4.
-The URL stays the same, so a QR code to it will open both experiences.
+KEEP THE SAME WEBSITE AND QR URL
+https://ivygaok.github.io/AR-Lookbook/
+Old unused files in GitHub can remain. The new code only uses targets-flower.mind
+for recognition, not targets-book.mind or targets-flat.mind.
 
-TARGETS
-Target 1 pixels are unchanged from the flat-section version you accepted.
-Target 2 is a crop of original Target 2.png: (1450,70) to (2000,800), within
-one side of the spread and outside the center popup footprint.
-Recognition may vary with lighting, glare, shadows, page curvature, and popup
-occlusion. The camera must see the background patch, not just the pink flower.
+TARGET AND PLAYBACK DETAILS
+Recognition uses background details that remain visible around the popup.
+Some partial views may work; there is no guarantee that every small portion
+will contain enough distinctive details. The page fold, popup shadows, glare,
+and how much background is visible can affect recognition. Test the actual
+assembled book. No digital video or image is placed over the popup flower.
 
-MEDIA
-Portrait video retained without changes.
-Popup audio is a louder copy of Trigger 2.mp3, normalized toward -16 LUFS.
-Original uploaded files were not changed.
+The popup clip continues while the AR page remains open and visible. Switching
+apps or tabs stops the experience. Sound mutes/unmutes either experience.
+Scan another page stops the popup clip; briefly aim away before rescanning the
+same flower. Scanning the portrait can also switch directly to its video.
 
-CHECKED HERE
-Code syntax, required local assets, target indices, original portrait placement,
-and playback orchestration (unlocking both clips, switching targets, tracking
-loss, mute controls, repeated starts, fallback playback) were checked.
-Physical recognition, alignment, sound levels, and Android browser permission
-behavior still require your device test.
+FILES
+index.html / app.js / style.css — website
+assets/target-01.png — recognition image 1
+assets/target-02.png — recognition image 2, full original background
+assets/targets-flower.mind — YOU generate this in step 4
+assets/target.png — portrait reference picture
+assets/popup-preview.jpg — physical popup reference picture
+assets/video-v2.mp4 — existing portrait video
+assets/audio-02.mp3 — existing louder popup soundscape
+
+VALIDATION
+Code syntax, local asset references, unchanged portrait target and placement,
+and simulated playback state checks passed (both sound unlocks, target
+switching, continued audio after popup tracking loss, scan-another control,
+mute, reference-dialog handlers, missing-file errors, timeouts, repeated
+starts, and stopping when the tab is hidden).
+A browser rendering check could not run in this environment. Mobile layout,
+physical recognition, and Android permissions/playback still need your test.
