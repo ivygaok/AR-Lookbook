@@ -4,32 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>AR Lookbook</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=two-experiences-1">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script src="app.js?v=flat-section-1" defer></script>
+  <script src="app.js?v=two-experiences-1" defer></script>
 </head>
 <body>
   <main id="welcome" class="card">
     <p class="eyebrow">AN INTERACTIVE LOOKBOOK</p>
-    <h1>Meet the artist.</h1>
-    <p>Start the camera, then point your phone at the flower-shaped portrait.</p>
+    <h1>Explore the book.</h1>
+    <p>Start the camera, then scan the portrait or the background beside the popup flower.</p>
     <img class="preview" src="assets/target.png" alt="Flower-shaped portrait to scan">
     <button id="start" disabled>Loading AR…</button>
     <p id="message" role="status" aria-live="polite">Preparing the experience…</p>
-    <p class="small">Allow camera access when asked. The video starts muted; tap Sound to hear it. Camera images are processed on your device.</p>
+    <p class="small">Allow camera access when asked. Start AR enables sound. You can mute it at any time. Camera images are processed on your device.</p>
   </main>
   <div id="toolbar" hidden>
-    <p id="status" role="status" aria-live="polite">Point at the flower portrait</p>
+    <p id="status" role="status" aria-live="polite">Scan either page</p>
     <div class="buttons">
       <button id="sound" aria-pressed="false">Sound: off</button>
-      <button id="play" hidden>Play video</button>
+      <button id="play" hidden>Play media</button>
       <button id="stop">Stop camera</button>
     </div>
   </div>
   <video id="art-video" src="assets/video-v2.mp4" muted playsinline loop preload="metadata" crossorigin="anonymous" hidden></video>
+  <audio id="page-audio" src="assets/audio-02.mp3" muted loop preload="metadata" crossorigin="anonymous" hidden></audio>
   <a-scene
-    mindar-image="imageTargetSrc: assets/targets-flat.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 5; missTolerance: 10;"
+    mindar-image="imageTargetSrc: assets/targets-book.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 5; missTolerance: 10;"
     color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true;"
     vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -38,6 +39,8 @@
       <a-video src="#art-video" width="3.36" height="1.89" position="-0.73 1.2125 0.01"
         material="shader: flat; side: double;"></a-video>
     </a-entity>
+    <!-- Audio only: this target adds no visible object over the paper popup. -->
+    <a-entity id="popup-page" mindar-image-target="targetIndex: 1"></a-entity>
   </a-scene>
 </body>
 </html>

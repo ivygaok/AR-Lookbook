@@ -1,73 +1,87 @@
 'use strict';
-const scene = document.querySelector('a-scene');
-const portrait = document.querySelector('#portrait');
-const video = document.querySelector('#art-video');
-const welcome = document.querySelector('#welcome');
-const toolbar = document.querySelector('#toolbar');
-const start = document.querySelector('#start');
-const message = document.querySelector('#message');
-const status = document.querySelector('#status');
-const sound = document.querySelector('#sound');
-const play = document.querySelector('#play');
-let active = false;
-let visible = false;
+const $ = (selector) => document.querySelector(selector);
+const scene = $('a-scene');
+const welcome = $('#welcome');
+const toolbar = $('#toolbar');
+const start = $('#start');
+const message = $('#message');
+const status = $('#status');
+const sound = $('#sound');
+const play = $('#play');
+const experiences = [
+  { target: $('#portrait'), media: $('#art-video'), label: 'Artist portrait' },
+  { target: $('#popup-page'), media: $('#page-audio'), label: 'Popup soundscape' }
+];
 let ar;
-let audioContext;
-let audioGate;
+let active = false;
+let starting = false;
+let current = null;
+let muted = false;
+let context;
 let session = 0;
+let playback = 0;
 
-function updateSoundButton() {
-  sound.textContent = video.muted ? 'Sound: off' : 'Sound: on';
-  sound.setAttribute('aria-pressed', String(!video.muted));
+for (const item of experiences) {
+  item.media.muted = true;
+  item.media.volume = 1;
 }
-function silence() {
-  if (audioGate) audioGate.gain.value = 0;
-  video.pause();
+function updateSound() {
+  for (const item of experiences) item.media.muted = muted;
+  sound.textContent = muted ? 'Sound: off' : 'Sound: on';
+  sound.setAttribute('aria-pressed', String(!muted));
 }
-// Called directly by Start AR, before any fetch or other awaited operation.
-// The zero gain prevents the intro audio sounding before the portrait is found.
+function silence(item) {
+  if (item.gate) item.gate.gain.value = 0;
+  item.media.pause();
+}
+function silenceAll() { experiences.forEach(silence); }
+
+// Called from the Start AR click before any awaited work. Both media elements
+// are primed through silent gates so neither clip is heard before recognition.
 function unlockAudio() {
-  video.muted = false;
-  video.volume = 1;
-  updateSoundButton();
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return Promise.resolve();
-  if (!audioContext) {
-    audioContext = new AudioContextClass();
-    audioGate = audioContext.createGain();
-    audioGate.gain.value = 0;
-    audioContext.createMediaElementSource(video).connect(audioGate);
-    audioGate.connect(audioContext.destination);
+  muted = false;
+  updateSound();
+  const Context = window.AudioContext || window.webkitAudioContext;
+  if (!Context) return Promise.resolve();
+  if (!context) {
+    context = new Context();
+    for (const item of experiences) {
+      item.gate = context.createGain();
+      item.gate.gain.value = 0;
+      context.createMediaElementSource(item.media).connect(item.gate);
+      item.gate.connect(context.destination);
+    }
   }
-  audioGate.gain.value = 0;
-  // Both calls occur while the button's user activation is available.
-  const resume = audioContext.resume();
-  const prime = video.play();
-  return Promise.allSettled([resume, prime]).then(() => {
-    if (!visible) {
-      silence();
-      video.currentTime = 0;
+  for (const item of experiences) item.gate.gain.value = 0;
+  const attempts = [context.resume()];
+  for (const item of experiences) attempts.push(item.media.play());
+  return Promise.allSettled(attempts).then(() => {
+    for (const item of experiences) {
+      if (current !== item) {
+        silence(item);
+        item.media.currentTime = 0;
+      }
     }
   });
 }
-video.muted = true;
-video.volume = 1;
 function ready() {
   ar = scene.systems['mindar-image-system'];
   if (!ar) return;
   start.disabled = false;
   start.textContent = 'Start AR';
-  message.textContent = 'Ready when you are.';
+  message.textContent = 'Ready. Start AR enables sound for both pages.';
 }
 if (scene.hasLoaded) ready();
 else scene.addEventListener('loaded', ready, { once: true });
 
 function finish(text) {
   session += 1;
+  playback += 1;
   active = false;
-  visible = false;
-  silence();
-  if (ar) ar.stop();
+  starting = false;
+  current = null;
+  silenceAll();
+  ar?.stop();
   welcome.hidden = false;
   toolbar.hidden = true;
   play.hidden = true;
@@ -75,63 +89,63 @@ function finish(text) {
   start.textContent = 'Start AR';
   message.textContent = text;
 }
-async function playVideo() {
-  if (!active || !visible || document.hidden) return;
+async function playCurrent() {
+  const item = current;
+  if (!active || !item || document.hidden) return;
+  const request = ++playback;
   try {
-    // A tap on the fallback Play button can also resume a suspended context.
-    if (audioContext && audioContext.state !== 'running' && !video.muted) {
-      await audioContext.resume();
-      if (audioContext.state !== 'running') throw new Error('audio-blocked');
+    if (context && context.state !== 'running' && !muted) {
+      await context.resume();
+      if (context.state !== 'running') throw new Error('audio-blocked');
     }
-    if (!active || !visible || document.hidden) return;
-    if (audioGate) audioGate.gain.value = 1;
-    await video.play();
-    // Tracking may have been lost while the browser was starting playback.
-    if (!active || !visible || document.hidden) silence();
+    if (request !== playback || current !== item || !active || document.hidden) return;
+    if (item.gate) item.gate.gain.value = 1;
+    await item.media.play();
+    if (current !== item || !active || document.hidden) {
+      silence(item);
+      return;
+    }
+    if (request !== playback) return;
     play.hidden = true;
+    status.textContent = item.label + ' — keep the target in view';
   } catch (error) {
-    silence();
-    if (active && visible) {
-      play.hidden = false;
-      status.textContent = 'Portrait found — tap Play video to enable playback.';
-    }
+    if (request !== playback || current !== item || !active) return;
+    silence(item);
+    play.hidden = false;
+    status.textContent = item.label + ' found — tap Play media.';
   }
 }
 start.addEventListener('click', async () => {
-  if (!ar || active) return;
-  if (!window.isSecureContext) {
-    message.textContent = 'Open the HTTPS GitHub Pages link to use the camera.';
+  if (!ar || active || starting) return;
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    message.textContent = 'Open the HTTPS website in Chrome on your Android to use the camera.';
     return;
   }
-  if (!navigator.mediaDevices?.getUserMedia) {
-    message.textContent = 'Open this link in Chrome on your Android phone to use the camera.';
-    return;
-  }
+  starting = true;
   start.disabled = true;
+  const request = ++session;
+  current = null;
+  silenceAll();
+  for (const item of experiences) item.media.currentTime = 0;
   message.textContent = 'Enabling sound…';
-  const thisSession = ++session;
   try {
-    // Do not move this below fetch(): audio is unlocked by the Start AR tap.
     await unlockAudio();
-    if (thisSession !== session) return;
+    if (request !== session) return;
     message.textContent = 'Checking target data…';
-    const response = await fetch('assets/targets-flat.mind');
-    if (thisSession !== session) return;
-    if (!response.ok) throw new Error('missing-target');
-    // A web host may return an HTML error page with status 200.
-    if ((response.headers.get('content-type') || '').includes('text/html')) throw new Error('missing-target');
+    const response = await fetch('assets/targets-book.mind');
+    if (request !== session) return;
+    if (!response.ok || (response.headers.get('content-type') || '').includes('text/html')) {
+      throw new Error('missing-target');
+    }
     active = true;
-    visible = false;
-    video.currentTime = 0;
-    updateSoundButton();
     message.textContent = 'Allow camera access when asked…';
     await ar.start();
+    if (request === session) starting = false;
   } catch (error) {
-    if (thisSession !== session) return;
-    const missing = error.message === 'missing-target';
-    finish(missing
-      ? 'One setup step remains: compile assets/flat-section.png and save the result as assets/targets-flat.mind.'
-      : 'Could not start AR. Check camera permission and your internet connection, then try again.');
+    if (request !== session) return;
+    finish(error.message === 'missing-target'
+      ? 'Compile target-01.png and target-02.png together in that order, then save the result as assets/targets-book.mind. See START-HERE.txt.'
+      : 'Could not start AR. Check camera permission and your connection, then try again.');
     console.error(error);
   }
 });
@@ -139,35 +153,43 @@ scene.addEventListener('arReady', () => {
   if (!active) { ar?.stop(); return; }
   welcome.hidden = true;
   toolbar.hidden = false;
-  status.textContent = 'Point at the flower portrait';
+  status.textContent = 'Scan the portrait or the background to the right of the popup';
 });
 scene.addEventListener('arError', () => {
-  finish('Camera could not start. Allow camera access for this website in Chrome, then try again.');
+  finish('Could not start the camera. Allow camera access in Chrome, then try again.');
 });
-portrait.addEventListener('targetFound', () => {
-  visible = true;
-  status.textContent = 'Portrait found — keep it in view';
-  playVideo();
-});
-portrait.addEventListener('targetLost', () => {
-  visible = false;
-  silence();
-  play.hidden = true;
-  status.textContent = 'Point back at the flower portrait to continue';
-});
+for (const item of experiences) {
+  item.target.addEventListener('targetFound', () => {
+    if (!active) return;
+    playback += 1;
+    silenceAll();
+    current = item;
+    play.hidden = true;
+    status.textContent = item.label + ' found';
+    playCurrent();
+  });
+  item.target.addEventListener('targetLost', () => {
+    if (current !== item) return;
+    playback += 1;
+    current = null;
+    silence(item);
+    play.hidden = true;
+    status.textContent = 'Point back at either target to continue';
+  });
+  item.media.addEventListener('error', () => {
+    if (active && current === item) status.textContent = 'Could not load ' + item.label + '. Check the connection and reload.';
+  });
+}
 sound.addEventListener('click', () => {
-  video.muted = !video.muted;
-  updateSoundButton();
-  playVideo();
+  muted = !muted;
+  updateSound();
+  playCurrent();
 });
-play.addEventListener('click', playVideo);
-document.querySelector('#stop').addEventListener('click', () => finish('Camera stopped.'));
+play.addEventListener('click', playCurrent);
+$('#stop').addEventListener('click', () => finish('Camera stopped.'));
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && (active || start.disabled)) finish('Camera paused. Tap Start AR to continue.');
-});
-video.addEventListener('error', () => {
-  if (active) status.textContent = 'Video could not load. Check your connection and reload the page.';
+  if (document.hidden && (active || starting)) finish('Camera paused. Tap Start AR to continue.');
 });
 setTimeout(() => {
-  if (!ar) message.textContent = 'AR has not loaded. Check your internet connection and reload. The page needs access to aframe.io and cdn.jsdelivr.net.';
+  if (!ar) message.textContent = 'AR has not loaded. Check your internet connection and reload.';
 }, 20000);

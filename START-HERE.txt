@@ -1,73 +1,56 @@
-AR LOOKBOOK — FIRST TEST
+TWO AR EXPERIENCES — COMPLETE PROJECT
 
-Included files
-index.html       Website structure and video placement
-style.css        Colors, type, and buttons
-app.js           Camera, recognition, playback, and sound controls
-assets/target.png  Flower portrait, cropped to remove empty outer margins
-assets/video.mp4   Optimized copy of your video, with audio
+This folder contains both experiences, including all existing media and styles.
+1. Portrait: video with sound, using the accepted flat-section target and
+   existing video size and placement.
+2. Popup page: audio only, using the flat background on the RIGHT side.
+   No digital image or video covers the physical popup.
 
-Your original uploads are unchanged. The portrait remains transparent outside
-its flower shape. Nothing here requires a white printed page. The video is a
-normal 16:9 rectangle centered over the flower, not masked into a flower.
+Start AR enables sound for both. Each clip loops while its target is tracked.
+Scanning away pauses playback; returning resumes it. Switching between targets
+pauses the other clip. Sound mutes both. Stop camera stops both.
 
-1. OPEN IN VS CODE
-Unzip AR-Lookbook-Starter.zip. Move the AR-Lookbook folder to Documents.
-In VS Code choose File > Open Folder and select this folder.
-If you already made an empty AR-Lookbook folder, replace it with this one.
+SETUP
+1. Unzip AR-Lookbook-Two-Experiences.zip. Keep your old project as a backup.
+2. Open the new AR-Lookbook-Two-Experiences folder in VS Code.
+3. On your Mac open https://hiukim.github.io/mind-ar-js-doc/tools/compile/
+4. Add these two images from the new assets folder IN THIS EXACT ORDER:
+   FIRST target-01.png (portrait apron/brooch patch)
+   SECOND target-02.png (right-side brick wall/graffiti background)
+   Confirm the compiler lists the portrait patch first. Compile BOTH together
+   in a single operation, not separately. This sets targetIndex 0 and 1.
+5. Download the result. Rename it targets-book.mind and put it inside the
+   new project's assets folder, next to target-01.png and target-02.png.
+6. Open your existing AR-Lookbook repository on GitHub.
+   Choose Add file > Upload files. From the NEW project folder, drag in its
+   CONTENTS: index.html, app.js, style.css, START-HERE.txt, and assets folder.
+   Do not drag the outer project folder. Commit changes.
+7. After deployment, open https://ivygaok.github.io/AR-Lookbook/ on Android.
+   Use a new Incognito tab if the previous version is cached.
+8. Start AR and test each physical page. For the popup page, aim so the
+   background to the RIGHT of the flower is clearly visible. A closer view of
+   that area can help initial recognition. No reprinting is needed.
 
-2. MAKE THE RECOGNITION FILE (required once)
-On your Mac, visit:
-https://hiukim.github.io/mind-ar-js-doc/tools/compile/
-Add ONLY assets/target.png from this folder. Click Start.
-When finished, download the resulting targets.mind file.
-Move it into the assets folder next to target.png and video.mp4.
-Make sure its name is exactly targets.mind (no extra number or .txt).
+OLD FILES
+Your old targets.mind, targets-flat.mind, flat-section.png, and video.mp4 can
+remain in GitHub; this version does not reference them. Keep video-v2.mp4.
+The URL stays the same, so a QR code to it will open both experiences.
 
-This is the portrait's tracking data. You do not need to repeat this when
-changing only the video. If you change the target, compile it again.
-The portrait's internal details matter most. A fold, glare, or a very small
-print may make recognition harder. Test it in its actual printed shape.
+TARGETS
+Target 1 pixels are unchanged from the flat-section version you accepted.
+Target 2 is a crop of original Target 2.png: (1450,70) to (2000,800), within
+one side of the spread and outside the center popup footprint.
+Recognition may vary with lighting, glare, shadows, page curvature, and popup
+occlusion. The camera must see the background patch, not just the pink flower.
 
-3. PUT THE FILES ON GITHUB
-Sign in at https://github.com and create a new repository named ar-lookbook.
-Choose Public and add a README so the repository is initialized.
-Open the repository, choose Add file > Upload files.
-In Finder, open AR-Lookbook. Select its CONTENTS (index.html, app.js,
-style.css, START-HERE.txt, assets, and any other visible files) and drag them
-into GitHub's upload area. Include the assets FOLDER to preserve its path.
-Click Commit changes.
-IMPORTANT: index.html must be at the top level of the repository, not inside
-another AR-Lookbook folder. assets must contain targets.mind before testing.
-Your source files and uploaded media will be publicly accessible in this repo.
+MEDIA
+Portrait video retained without changes.
+Popup audio is a louder copy of Trigger 2.mp3, normalized toward -16 LUFS.
+Original uploaded files were not changed.
 
-4. ENABLE THE WEBSITE
-In the repository, open Settings > Pages.
-Under Build and deployment, select Deploy from a branch.
-Select main and / (root), then Save.
-Wait for GitHub's deployment to finish. The Pages screen will show your URL,
-normally https://YOUR-USERNAME.github.io/ar-lookbook/
-
-5. TEST ON ANDROID
-Open that HTTPS URL in Chrome on your Android phone.
-Keep an image of the flower portrait visible on your Mac, or use the print.
-Tap Start AR, allow camera access, and aim at the portrait.
-The rectangular video should follow the flower. Tap Sound to hear audio.
-Moving away pauses it; finding the portrait again resumes it.
-Stop camera ends the session. Switching tabs also stops it.
-Do not double-click index.html to test; use the published website.
-
-6. NEXT
-After the printed target works, make a QR code for the Pages URL.
-Do this before printing the final book. Keep the repo name and URL stable.
-We can add other targets, adjust video size, or mask it into a flower later.
-
-TESTING LIMIT
-The code and file structure were checked in the development environment.
-Camera tracking on your Android and recognition of the physical foldout
-must still be tested. The targets.mind file is not included: step 2 creates it.
-
-Official references:
-https://hiukim.github.io/mind-ar-js-doc/quick-start/compile/
-https://hiukim.github.io/mind-ar-js-doc/examples/events-handling/
-https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
+CHECKED HERE
+Code syntax, required local assets, target indices, original portrait placement,
+and playback orchestration (unlocking both clips, switching targets, tracking
+loss, mute controls, repeated starts, fallback playback) were checked.
+Physical recognition, alignment, sound levels, and Android browser permission
+behavior still require your device test.
