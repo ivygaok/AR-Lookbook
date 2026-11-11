@@ -17,7 +17,7 @@ let dismissPopup = false;
 let popupVisible = false;
 const experiences = [
   { target: $('#portrait'), media: $('#art-video'), label: 'Artist portrait' },
-  { target: $('#popup-page'), media: $('#page-audio'), label: 'Popup soundscape', keepPlaying: true }
+  { target: $('#popup-page'), media: $('#page-audio'), label: 'Popup soundscape', keepPlaying: false }
 ];
 let ar;
 let active = false;
