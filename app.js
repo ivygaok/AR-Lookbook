@@ -12,8 +12,46 @@ const play = document.querySelector('#play');
 let active = false;
 let visible = false;
 let ar;
-video.muted = true;
+let audioContext;
+let audioGate;
+let session = 0;
 
+function updateSoundButton() {
+  sound.textContent = video.muted ? 'Sound: off' : 'Sound: on';
+  sound.setAttribute('aria-pressed', String(!video.muted));
+}
+function silence() {
+  if (audioGate) audioGate.gain.value = 0;
+  video.pause();
+}
+// Called directly by Start AR, before any fetch or other awaited operation.
+// The zero gain prevents the intro audio sounding before the portrait is found.
+function unlockAudio() {
+  video.muted = false;
+  video.volume = 1;
+  updateSoundButton();
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return Promise.resolve();
+  if (!audioContext) {
+    audioContext = new AudioContextClass();
+    audioGate = audioContext.createGain();
+    audioGate.gain.value = 0;
+    audioContext.createMediaElementSource(video).connect(audioGate);
+    audioGate.connect(audioContext.destination);
+  }
+  audioGate.gain.value = 0;
+  // Both calls occur while the button's user activation is available.
+  const resume = audioContext.resume();
+  const prime = video.play();
+  return Promise.allSettled([resume, prime]).then(() => {
+    if (!visible) {
+      silence();
+      video.currentTime = 0;
+    }
+  });
+}
+video.muted = true;
+video.volume = 1;
 function ready() {
   ar = scene.systems['mindar-image-system'];
   if (!ar) return;
@@ -25,9 +63,10 @@ if (scene.hasLoaded) ready();
 else scene.addEventListener('loaded', ready, { once: true });
 
 function finish(text) {
+  session += 1;
   active = false;
   visible = false;
-  video.pause();
+  silence();
   if (ar) ar.stop();
   welcome.hidden = false;
   toolbar.hidden = true;
@@ -39,13 +78,23 @@ function finish(text) {
 async function playVideo() {
   if (!active || !visible || document.hidden) return;
   try {
+    // A tap on the fallback Play button can also resume a suspended context.
+    if (audioContext && audioContext.state !== 'running' && !video.muted) {
+      await audioContext.resume();
+      if (audioContext.state !== 'running') throw new Error('audio-blocked');
+    }
+    if (!active || !visible || document.hidden) return;
+    if (audioGate) audioGate.gain.value = 1;
     await video.play();
     // Tracking may have been lost while the browser was starting playback.
-    if (!active || !visible || document.hidden) video.pause();
+    if (!active || !visible || document.hidden) silence();
     play.hidden = true;
   } catch (error) {
-    play.hidden = false;
-    status.textContent = 'Portrait found — tap Play video.';
+    silence();
+    if (active && visible) {
+      play.hidden = false;
+      status.textContent = 'Portrait found — tap Play video to enable playback.';
+    }
   }
 }
 start.addEventListener('click', async () => {
@@ -59,22 +108,26 @@ start.addEventListener('click', async () => {
     return;
   }
   start.disabled = true;
-  message.textContent = 'Checking target data…';
+  message.textContent = 'Enabling sound…';
+  const thisSession = ++session;
   try {
+    // Do not move this below fetch(): audio is unlocked by the Start AR tap.
+    await unlockAudio();
+    if (thisSession !== session) return;
+    message.textContent = 'Checking target data…';
     const response = await fetch('assets/targets.mind');
+    if (thisSession !== session) return;
     if (!response.ok) throw new Error('missing-target');
     // A web host may return an HTML error page with status 200.
     if ((response.headers.get('content-type') || '').includes('text/html')) throw new Error('missing-target');
     active = true;
     visible = false;
     video.currentTime = 0;
-    video.muted = true;
-    sound.textContent = 'Sound: off';
-    sound.setAttribute('aria-pressed', 'false');
+    updateSoundButton();
     message.textContent = 'Allow camera access when asked…';
-    video.load();
     await ar.start();
   } catch (error) {
+    if (thisSession !== session) return;
     const missing = error.message === 'missing-target';
     finish(missing
       ? 'One setup step remains: compile assets/target.png and save the result as assets/targets.mind. See START-HERE.txt.'
@@ -98,20 +151,19 @@ portrait.addEventListener('targetFound', () => {
 });
 portrait.addEventListener('targetLost', () => {
   visible = false;
-  video.pause();
+  silence();
   play.hidden = true;
   status.textContent = 'Point back at the flower portrait to continue';
 });
 sound.addEventListener('click', () => {
   video.muted = !video.muted;
-  sound.textContent = video.muted ? 'Sound: off' : 'Sound: on';
-  sound.setAttribute('aria-pressed', String(!video.muted));
+  updateSoundButton();
   playVideo();
 });
 play.addEventListener('click', playVideo);
 document.querySelector('#stop').addEventListener('click', () => finish('Camera stopped.'));
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && active) finish('Camera paused. Tap Start AR to continue.');
+  if (document.hidden && (active || start.disabled)) finish('Camera paused. Tap Start AR to continue.');
 });
 video.addEventListener('error', () => {
   if (active) status.textContent = 'Video could not load. Check your connection and reload the page.';
